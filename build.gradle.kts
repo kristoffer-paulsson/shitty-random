@@ -1,5 +1,6 @@
 plugins {
     id("java")
+    id("application")
 }
 
 group = "org.example"
@@ -10,10 +11,16 @@ repositories {
 }
 
 dependencies {
+    implementation("args4j:args4j:2.33")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
 tasks.test {
     useJUnitPlatform()
+}
+
+application {
+    mainClass.set("org.example.Main")
+    applicationName = "ShittyRandom"
 }

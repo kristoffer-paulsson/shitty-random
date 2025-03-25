@@ -1,2 +1,8 @@
-rootProject.name = "test-output"
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+rootProject.name = "shitty-random"
 
