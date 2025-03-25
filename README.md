@@ -10,7 +10,11 @@ Description: Shitty Random is a CLI and server application built using Java. It 
 * Can even start a RNG server.
 * Works on all platform, written in Java.
 
-## Installation:
+## Using:
+
+```
+./gradlew run --args="your arguments here"
+```
 
 ```
 > ./gradlew installDist

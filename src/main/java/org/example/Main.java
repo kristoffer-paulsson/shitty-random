@@ -14,10 +14,14 @@ public class Main {
     public static void main(String[] args) {
         CommandLineOptions options = new CommandLineOptions();
         CmdLineParser parser = new CmdLineParser(options);
+
         try {
             parser.parseArgument(args);
 
-            if (options.isBenchmark()) {
+            if (/*System.console() == null || */options.isPipe()) {
+                System.out.println("Detected UNIX piping mode.");
+                pipeRandomOutput(System.out);
+            } else if (options.isBenchmark()) {
                 System.out.println("Running benchmark...\n");
                 benchmark();
             } else if (options.getOutput() != null) {
@@ -32,9 +36,6 @@ public class Main {
             } else if (options.isRestart()) {
                 System.out.println("Restarting daemon...");
                 RandomServer.restart();
-            } else if (options.isPipe()) {
-                System.out.println("Piping random output to parent process...");
-                pipeRandomOutput(System.out);
             } else {
                 System.out.println("No options specified");
             }
