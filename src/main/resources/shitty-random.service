@@ -1,0 +1,13 @@
+[Unit]
+Description=Shitty Random Number Generator Daemon
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/shitty-random/bin/shitty-random
+Restart=on-failure
+User=nobody
+Group=nogroup
+
+[Install]
+WantedBy=multi-user.target

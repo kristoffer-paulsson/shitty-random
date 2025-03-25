@@ -22,7 +22,7 @@ tasks.test {
 
 application {
     mainClass.set("org.example.Main")
-    applicationName = "ShittyRandom"
+    applicationName = "shitty-random"
 }
 
 tasks.register<JavaExec>("runServer") {
