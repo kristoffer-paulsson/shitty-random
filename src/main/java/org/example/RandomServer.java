@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 public class RandomServer {
 
-    private static final int PORT = 12345;
+    private static final int PORT = 8080;
     private static final int BUFFER_SIZE = 1024;
     private static volatile boolean running = true;
     private static final Logger logger = Logger.getLogger(RandomServer.class.getName());
@@ -133,5 +133,9 @@ public class RandomServer {
                 }
             }
         }
+    }
+
+    public static void main(String[] args) {
+        start();
     }
 }

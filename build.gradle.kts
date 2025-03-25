@@ -24,3 +24,10 @@ application {
     mainClass.set("org.example.Main")
     applicationName = "ShittyRandom"
 }
+
+tasks.register<JavaExec>("runServer") {
+    group = "application"
+    description = "Run the server daemon"
+    mainClass.set("org.example.RandomServer")
+    classpath = sourceSets["main"].runtimeClasspath
+}
