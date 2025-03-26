@@ -10,6 +10,9 @@ version = "1.0-SNAPSHOT"
 val mainClazz = "org.example.Main"
 
 repositories {
+    maven {
+        url = uri("file://${projectDir}/local-repo")
+    }
     mavenCentral()
 }
 
@@ -38,6 +41,19 @@ distributions {
                 into("lib")
             }
         }
+    }
+}
+
+tasks.register<Copy>("setupLocalRepo") {
+    group = "build"
+    description = "Setup local repository with all dependencies"
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    destinationDir = file("${projectDir}/local-repo")
+    from(configurations.runtimeClasspath) {
+        into(relativePath(destinationDir.parent))
+    }
+    from(configurations.testRuntimeClasspath) {
+        into(relativePath(destinationDir.parent))
     }
 }
 
@@ -89,11 +105,16 @@ tasks.register<Exec>("createRpmInstaller") {
 tasks.register<Zip>("createSourcePackage") {
     group = "distribution"
     description = "Package the project for source distribution"
+    dependsOn("setupLocalRepo")
     from(".") {
         include(
+            "local-repo/**",
             "src/**", "build.gradle.kts", "settings.gradle.kts",
             "gradlew", "gradlew.bat", "gradle/**",
             "LICENSE", "README.md", ".gitignore")
+    }
+    from(configurations.runtimeClasspath) {
+        into("lib")
     }
     archiveFileName.set("shitty-random-${version}.zip")
     destinationDirectory.set(file("$buildDir/distributions"))
