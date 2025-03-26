@@ -7,7 +7,7 @@ plugins {
 group = "org.example"
 version = "1.0-SNAPSHOT"
 
-val mainClass = "org.example.Main"
+val mainClazz = "org.example.Main"
 
 repositories {
     mavenCentral()
@@ -24,7 +24,7 @@ tasks.test {
 }
 
 application {
-    mainClass.set(mainClass)
+    mainClass.set(mainClazz)
     applicationName = "shitty-random"
 }
 
@@ -33,6 +33,9 @@ distributions {
         contents {
             from("src/main/resources") {
                 into("resources")
+            }
+            from(configurations.runtimeClasspath) {
+                into("lib")
             }
         }
     }
@@ -43,11 +46,11 @@ tasks.register<Exec>("createMacInstaller") {
     description = "Create a macOS installer using jpackage"
     commandLine = listOf(
         "jpackage",
-        "--type", "pkg",
+        "--type", "dmg",
         "--input", "build/install/shitty-random",
         "--dest", "build/installer",
         "--name", "ShittyRandom",
-        "--main-class", mainClass,
+        "--main-class", mainClazz,
         "--main-jar", "lib/shitty-random-" + version + ".jar", //"shitty-random.jar",
         "--icon", "src/main/resources/logo.icns"
     )
@@ -58,11 +61,11 @@ tasks.register<Exec>("createDebInstaller") {
     description = "Create a Debian installer using jpackage"
     commandLine = listOf(
         "jpackage",
-        "--type", "deb", // or "rpm" for RPM package
+        "--type", "deb",
         "--input", "build/install/shitty-random",
         "--dest", "build/installer",
         "--name", "ShittyRandom",
-        "--main-class", mainClass,
+        "--main-class", mainClazz,
         "--main-jar", "lib/shitty-random-" + version + ".jar",
         "--icon", "src/main/resources/logo.png"
     )
@@ -73,12 +76,25 @@ tasks.register<Exec>("createRpmInstaller") {
     description = "Create a RedHat installer using jpackage"
     commandLine = listOf(
         "jpackage",
-        "--type", "rpm", // or "rpm" for RPM package
+        "--type", "rpm",
         "--input", "build/install/shitty-random",
         "--dest", "build/installer",
         "--name", "ShittyRandom",
-        "--main-class", mainClass,
+        "--main-class", mainClazz,
         "--main-jar", "lib/shitty-random-" + version + ".jar",
         "--icon", "src/main/resources/logo.png"
     )
+}
+
+tasks.register<Zip>("createSourcePackage") {
+    group = "distribution"
+    description = "Package the project for source distribution"
+    from(".") {
+        include(
+            "src/**", "build.gradle.kts", "settings.gradle.kts",
+            "gradlew", "gradlew.bat", "gradle/**",
+            "LICENSE", "README.md", ".gitignore")
+    }
+    archiveFileName.set("shitty-random-${version}.zip")
+    destinationDirectory.set(file("$buildDir/distributions"))
 }
