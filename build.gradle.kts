@@ -10,6 +10,9 @@ version = "1.0-SNAPSHOT"
 val mainClazz = "org.example.Main"
 
 repositories {
+    flatDir {
+        dirs("file://${projectDir}/local-repo")
+    }
     maven {
         url = uri("file://${projectDir}/local-repo")
     }
@@ -37,9 +40,6 @@ distributions {
             from("src/main/resources") {
                 into("resources")
             }
-            from(configurations.runtimeClasspath) {
-                into("lib")
-            }
         }
     }
 }
@@ -49,12 +49,60 @@ tasks.register<Copy>("setupLocalRepo") {
     description = "Setup local repository with all dependencies"
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     destinationDir = file("${projectDir}/local-repo")
+    val relativePath = relativePath(destinationDir.parent)
+
+    // Copy runtime and test runtime classpath
     from(configurations.runtimeClasspath) {
-        into(relativePath(destinationDir.parent))
+        into(relativePath)
     }
     from(configurations.testRuntimeClasspath) {
-        into(relativePath(destinationDir.parent))
+        into(relativePath)
     }
+
+    // Copy Gradle plugins
+    val gradleUserHome = gradle.gradleUserHomeDir
+    val gradlePluginsDir = file("$gradleUserHome/caches/modules-2/files-2.1")
+    from(gradlePluginsDir) {
+        include("**/*")
+    }
+    into(destinationDir)
+
+    // Copy Kotlin/Native (konan) dependencies
+    val konanUserHome = file("${System.getProperty("user.home")}/.konan")
+    val konanDir = file("$konanUserHome/cache")
+    from(konanDir) {
+        include("**/*")
+    }
+    into(destinationDir)
+
+    // Counterhack fixing attrocities of IllumiNATO
+    doLast {
+        val rootDir = file("${projectDir}/local-repo")
+        fun traverse(file: File, level: Int) {
+            if (file.isDirectory) {
+                println("Directory: ${file.path}")
+                file.listFiles()?.forEach {
+                    if(it.isFile && it.exists() && level > 0){
+                        var path = it.path.split('/').toMutableList()
+                        path.removeAt(path.lastIndex-1)
+                        val newDir = file("/" + path.joinToString("/") + "/")
+                        println("TEST: $newDir")
+                        //from(it)
+                        //into(newDir)
+                        if(!newDir.exists()) {
+                            it.copyTo(newDir)
+                            it.delete()
+                        }
+                    }
+                    traverse(it, level + 1)
+                }
+            } else {
+                println("File: ${file.path}")
+            }
+        }
+        traverse(rootDir, 0)
+    }
+
 }
 
 tasks.register<Exec>("createMacInstaller") {
@@ -113,9 +161,6 @@ tasks.register<Zip>("createSourcePackage") {
             "gradlew", "gradlew.bat", "gradle/**",
             "LICENSE", "README.md", ".gitignore")
     }
-    from(configurations.runtimeClasspath) {
-        into("lib")
-    }
     archiveFileName.set("shitty-random-${version}.zip")
-    destinationDirectory.set(file("$buildDir/distributions"))
+    destinationDirectory.set(layout.buildDirectory.dir("distributions").get().asFile)
 }
